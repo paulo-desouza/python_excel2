@@ -1,7 +1,8 @@
 # objective for this code: better use of functions.
+
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
-#from openpyxl.styles import Font, PatternFill, Border, Side
+from openpyxl.styles import Font, PatternFill, Border, Side
 from datetime import datetime
 import pyexcel
 import os
@@ -54,7 +55,7 @@ def scrape_table(worksheet):
         if not all([cell.value is None for cell in row]):
             row_count += 1
 
-    # Loop through the rows and columns, appending the information to a list.
+    # Loop through the rows and columns, appending the information to a dictionary.
     scraped_info = {}
 
     for r in range(1, row_count+1):
@@ -120,6 +121,11 @@ def date_conversion(date_string):
     return datetime(y, m, d)
 
 
+
+def date_conversion_rev():
+    pass
+    
+    
 def get_file_names():
     """
     Returns
@@ -133,7 +139,7 @@ def get_file_names():
     file_list = os.listdir(current_dir)
 
     file_list.remove("growth_report.py")
-    file_list.remove("TEST1.xlsx")
+    #file_list.remove("TEST1.xlsx")
 
     return file_list
 
@@ -150,21 +156,47 @@ def sort_by_date(file_list):
     """
 
     sorted_files = []
-    sorted_list = []
+    sorted_dates = []
 
     for file in file_list:
-        sorted_list.append(date_conversion(file))
+        if file == "LAST_GROWTH_REPORT":
+            pass
+        else:
+            sorted_dates.append(date_conversion(file))
 
-    sorted_list.sort()
-
-    for dt in sorted_list:
+    sorted_dates.sort()
+    
+    
+    # FROM THE CURRENT DATETIME, GET LAST WEEK'S DATETIME
+    for file in file_list:
+        if file == "LAST_GROWTH_REPORT":
+            
+            #needs present
+            last_week = get_last_week(sorted_dates[0])
+            
+            #LAST WEEK STRING SHOULD REFLECT THE OTHER FILES' FORMATS : Y M D
+            last_week_string = date_conversion_rev(last_week)
+            
+            os.rename("LAST_GROWTH_REPORT.xlsx", "report "+last_week_string+" lastweek.xlsx" )
+            
+            #add the datetime to sorted_dates
+            sorted_dates.insert(0, last_week)
+            
+    
+    
+    for dt in sorted_dates:
         for file in file_list:
-
+            
             if date_conversion(file) == dt:
 
                 sorted_files.append(file)
-
+        
     return sorted_files
+
+
+def get_last_week(datetime):
+    pass
+
 
 
 # CODE START
@@ -195,7 +227,7 @@ tables = []
 for i, file in enumerate(sorted_datetimes):
     wb = load_workbook(file)
     ws = wb.active
-
+    
     tables.append(scrape_table(ws))
 
 
@@ -286,7 +318,7 @@ for i, dic in enumerate(org_tables):
 
 
 
-
+# SCHOOL ID COLUMN ITERATION
 
 for i in range(0, len(titles)*2, 2):
     
@@ -294,7 +326,9 @@ for i in range(0, len(titles)*2, 2):
         ws["A" + str(i+1)].value = titles[i]
     else:
         ws["A" + str(i+1)].value = titles[int(i/2)]
-    
+
+
+# DATA TABLE ITERATION
 for a, dic in enumerate(data):
     for b, key in enumerate(dic):
         
@@ -302,61 +336,80 @@ for a, dic in enumerate(data):
             char = get_column_letter(col)
     
             if col == 2:
-                if a == 0:
-                    ws[char + str((b+1)*2-1)].value = dic[key][4] 
+            
+                ws[char + str((b+1)*2-1)].value = dic[key][4] 
             
             if col == 3:
                 if a == 0:
-                    ws[char + str((b+1)*2-1)].value = int(dic[key][0]/dic[key][3])
+                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
             
             if col == 4:
                 if a == 1:
-                    ws[char + str((b+1)*2-1)].value = int(dic[key][0]/dic[key][3])
+                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
                 
             if col == 5:
                 if a == 2:
-                    ws[char + str((b+1)*2-1)].value = int(dic[key][0]/dic[key][3])
+                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
                 
             if col == 6:
                 if a == 3:
-                    ws[char + str((b+1)*2-1)].value = int(dic[key][0]/dic[key][3])
+                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
                 
             if col == 7:
                 if a == 4:
-                    ws[char + str((b+1)*2-1)].value = int(dic[key][0]/dic[key][3])
+                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
 
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 wb.save("TEST1.xlsx")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
