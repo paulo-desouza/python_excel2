@@ -3,9 +3,10 @@
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill, Border, Side
-from datetime import datetime
+from datetime import datetime, timedelta
 import pyexcel
 import os
+from time import sleep
 
 
 def convert_xls(xls_file):
@@ -37,7 +38,7 @@ def delete_file(file):
     os.remove(file)
 
 
-def scrape_table(worksheet):
+def scrape_table(worksheet, flag = 0):
     """
     Parameters
     ----------
@@ -50,7 +51,7 @@ def scrape_table(worksheet):
     """
     # Row and column counter
     row_count = 0
-
+    
     for row in worksheet:
         if not all([cell.value is None for cell in row]):
             row_count += 1
@@ -61,14 +62,19 @@ def scrape_table(worksheet):
     for r in range(1, row_count+1):
 
         for col in range(1, 5):
-
             char = get_column_letter(col)
-
-            if char == "A":
-                scraped_info[ws[char + str(r)].value] = []
+            
+            
+            
+            if ws["A" + str(r)].value == None:
+                pass
+            
             else:
-                scraped_info[ws["A" +
-                                str(r)].value] += [ws[char + str(r)].value]
+                if char == "A":
+                    scraped_info[ws[char + str(r)].value] = []
+                else:
+                    scraped_info[ws["A" +
+                                    str(r)].value] += [ws[char + str(r)].value]
 
     return scraped_info
 
@@ -122,8 +128,34 @@ def date_conversion(date_string):
 
 
 
-def date_conversion_rev():
-    pass
+def date_conversion_rev(dt):
+    """
+    Parameters
+    -------
+    datetime: datetime object.
+
+    Returns
+    -------
+    String containing a datestring in the following format: "YYMMDD"
+    """
+    
+    return dt.strftime("%m%d%y")
+    
+    
+def move_sheet(wb, from_loc=None, to_loc=None):
+    sheets=wb._sheets
+
+    # if no from_loc given, assume last sheet
+    if from_loc is None:
+        from_loc = len(sheets) - 1
+
+    #if no to_loc given, assume first
+    if to_loc is None:
+        to_loc = 0
+
+    sheet = sheets.pop(from_loc)
+    sheets.insert(to_loc, sheet)
+    sleep(0.5)
     
     
 def get_file_names():
@@ -159,7 +191,7 @@ def sort_by_date(file_list):
     sorted_dates = []
 
     for file in file_list:
-        if file == "LAST_GROWTH_REPORT":
+        if file == "LAST_GROWTH_REPORT.xlsx":
             pass
         else:
             sorted_dates.append(date_conversion(file))
@@ -169,7 +201,7 @@ def sort_by_date(file_list):
     
     # FROM THE CURRENT DATETIME, GET LAST WEEK'S DATETIME
     for file in file_list:
-        if file == "LAST_GROWTH_REPORT":
+        if file == "LAST_GROWTH_REPORT.xlsx":
             
             #needs present
             last_week = get_last_week(sorted_dates[0])
@@ -177,7 +209,21 @@ def sort_by_date(file_list):
             #LAST WEEK STRING SHOULD REFLECT THE OTHER FILES' FORMATS : Y M D
             last_week_string = date_conversion_rev(last_week)
             
-            os.rename("LAST_GROWTH_REPORT.xlsx", "report "+last_week_string+" lastweek.xlsx" )
+            newfilename = "report "+last_week_string+" lastweek.xlsx"
+            os.rename("LAST_GROWTH_REPORT.xlsx", newfilename )
+            
+            #remove old filename and add new filename
+            file_list.remove("LAST_GROWTH_REPORT.xlsx")
+            
+            current_dir = os.getcwd()
+            file_list2 = os.listdir(current_dir)
+            
+            for file in file_list2:
+                if file == newfilename:
+                    file_list.append(newfilename)
+                    
+                else:
+                    pass            
             
             #add the datetime to sorted_dates
             sorted_dates.insert(0, last_week)
@@ -186,7 +232,6 @@ def sort_by_date(file_list):
     
     for dt in sorted_dates:
         for file in file_list:
-            
             if date_conversion(file) == dt:
 
                 sorted_files.append(file)
@@ -195,7 +240,17 @@ def sort_by_date(file_list):
 
 
 def get_last_week(datetime):
-    pass
+    """
+    Parameters
+    ----------
+    datetime : datetime object. 
+
+    Returns
+    -------
+    datetime_lastweek : datetime object containing last week's date in
+    relation to the received datetime.
+    """
+    return (datetime - timedelta(days=7))
 
 
 
@@ -212,6 +267,7 @@ for file in file_list:
         convert_xls(file)
         delete_file(file)
 
+
 # get list with converted files
 
 file_list = get_file_names()
@@ -225,23 +281,32 @@ sorted_datetimes = sort_by_date(file_list)
 tables = []
 
 for i, file in enumerate(sorted_datetimes):
-    wb = load_workbook(file)
-    ws = wb.active
     
-    tables.append(scrape_table(ws))
+    if i == 0:
+        wb = load_workbook(file)
+        ws = wb["Timeline"]
+        
+        tables.append(scrape_table(ws))
+    else:
+        wb = load_workbook(file)
+        ws = wb.active
+        
+        tables.append(scrape_table(ws))
 
 
-wb = Workbook()
-ws = wb.active
-ws.title = "Timeline"
+wb = load_workbook(sorted_datetimes[0])
+ws = wb["Timeline"]
 
-
+# OVERWRITE PAST REPORT'S TIMELINE
 col = 1
-for list in tables:
-    write_table(list, ws, col)
-    col += 6
+for i, lst in enumerate(tables):
+    if i == 0:
+        pass 
+    else:
+        write_table(lst, ws, col)
+        col += 6
 
-    #[rate/kid, maxcap]
+                                            #[rate/kid, maxcap]
 FIXED_INFO = {'001-Celebree of Glen Burnie': [381, 150],          # gb
               '002-Celebree of Owings Mills': [356, 135],         # om
               '003-Celebree of Tysons-Jones Branch': [526, 152],  # tjb
@@ -260,16 +325,22 @@ FIXED_INFO = {'001-Celebree of Glen Burnie': [381, 150],          # gb
               #'016-Celebree of Canton': [436, 152],               # canton
               '017-Celebree of Melford': [381, 150]               # melford
               }
+
 # ^^^       missing BELLONA and COLUMBIA       ^^^
 
+#Change positions of the worksheets. Bring current one to top.
 
-wb.create_sheet("Growth Report")
-ws = wb["Growth Report"]
+wb.create_sheet("Growth Report" + " - Week 2")
+
+move_sheet(wb, len(wb.sheetnames)-1, 1)
+
+ws = wb["Growth Report - Week 2"]
+
 
 
 titles = []
 
-for i, key in enumerate(tables[4]):
+for i, key in enumerate(tables[5]):
     if i < 3:
         pass
 
@@ -316,8 +387,6 @@ for i, dic in enumerate(org_tables):
         data[i][row] += FIXED_INFO[row]
         
 
-
-
 # SCHOOL ID COLUMN ITERATION
 
 for i in range(0, len(titles)*2, 2):
@@ -330,6 +399,7 @@ for i in range(0, len(titles)*2, 2):
 
 # DATA TABLE ITERATION
 for a, dic in enumerate(data):
+
     for b, key in enumerate(dic):
         
         for col in range(2, 8):
@@ -340,76 +410,29 @@ for a, dic in enumerate(data):
                 ws[char + str((b+1)*2-1)].value = dic[key][4] 
             
             if col == 3:
-                if a == 0:
+                if a == 1:
                     ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
             
             if col == 4:
-                if a == 1:
-                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
-                    ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
-                
-            if col == 5:
                 if a == 2:
                     ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
                 
-            if col == 6:
+            if col == 5:
                 if a == 3:
                     ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
                 
-            if col == 7:
+            if col == 6:
                 if a == 4:
                     ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
                     ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                
+            if col == 7:
+                if a == 5:
+                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
+                    ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
 
 wb.save("TEST1.xlsx")
 
