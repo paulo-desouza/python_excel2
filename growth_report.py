@@ -1,6 +1,6 @@
 # objective for this code: better use of functions.
 
-from openpyxl import Workbook, load_workbook
+from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill, Border, Side
 from datetime import datetime, timedelta
@@ -171,7 +171,7 @@ def get_file_names():
     file_list = os.listdir(current_dir)
 
     file_list.remove("growth_report.py")
-    #file_list.remove("TEST1.xlsx")
+    file_list.remove("TEST1.xlsx")
 
     return file_list
 
@@ -371,6 +371,7 @@ for i, dic in enumerate(tables):
 
         elif "999" in row:
             del org_tables[i][row]
+            
         
 data = []
             
@@ -389,12 +390,12 @@ for i, dic in enumerate(org_tables):
 
 # SCHOOL ID COLUMN ITERATION
 
-for i in range(0, len(titles)*2, 2):
+for i in range(0, len(titles)):
     
     if i==0:
         ws["A" + str(i+1)].value = titles[i]
     else:
-        ws["A" + str(i+1)].value = titles[int(i/2)]
+        ws["A" + str(i+1)].value = titles[i]
 
 
 # DATA TABLE ITERATION
@@ -402,37 +403,115 @@ for a, dic in enumerate(data):
 
     for b, key in enumerate(dic):
         
-        for col in range(2, 8):
+        for col in range(2, 4):
             char = get_column_letter(col)
-    
-            if col == 2:
             
-                ws[char + str((b+1)*2-1)].value = dic[key][4] 
+            if a == 1 and col == 2:
+                ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
+                
+                
+            elif a == 1 and col == 3:
+                ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3]) - int(data[a-1][key][0]/dic[key][3])
+                
+            elif a == 5 and char == "B":
+                ws[char + str(b+21)].value = dic[key][4]
+        
+        
+        
+for i in range(0, len(titles)):
+
+    ws["E" + str(i+1)].value = titles[i]
+
+# DATA TABLE ITERATION
+for a, dic in enumerate(data):
+
+    for b, key in enumerate(dic):
+        
+        for col in range(6, 11):
+            char = get_column_letter(col)
             
-            if col == 3:
-                if a == 1:
-                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
-                    ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
+            if char == "F" and a == 1:
+                ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
+                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
             
-            if col == 4:
-                if a == 2:
-                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
-                    ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
+            if char == "G" and a == 2:
+                ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
+                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
                 
-            if col == 5:
-                if a == 3:
-                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
-                    ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
+            if char == "H" and a == 3:
+                ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
+                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
                 
-            if col == 6:
-                if a == 4:
-                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
-                    ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
+            if char == "I" and a == 4:
+                ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
+                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
                 
-            if col == 7:
-                if a == 5:
-                    ws[char + str((b+1)*2-1)].value = str(int(dic[key][0]/dic[key][3]))
-                    ws[char + str((b+1)*2)].value = str(int((dic[key][0]/dic[key][3]*100)/dic[key][4])) + "%"
+            if char == "J" and a == 5:
+                ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
+                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+        
+        
+        
+for i in range(0, len(titles)):
+
+    ws["A" + str(i+21)].value = titles[i]
+
+        
+for i in range(0, len(titles)):
+
+    ws["E" + str(i+21)].value = titles[i]
+
+
+                ###STYLE###
+
+
+ws.move_range("A1:J36", rows=3, cols=3)
+
+ws.column_dimensions["D"].width = 35
+ws.column_dimensions["H"].width = 35
+
+ws.column_dimensions["A"].width = 3
+ws.column_dimensions["B"].width = 3
+ws.column_dimensions["C"].width = 3
+
+ws.row_dimensions[2].height = 8.5
+
+ws.merge_cells("D1:F1")
+ws.merge_cells("H1:M1")
+ws.merge_cells("D23:E23")
+ws.merge_cells("H23:M23")
+
+ws["D1"].value = "FTE Children"
+
+ws["H1"].value = "FTE Children BD Projections"
+ws["D23"].value = "School Max Capacity"
+ws["H23"].value = "School Occupancy"
+
+
+ws["E2"].value = "Current"
+ws["D3"].value = "School ID"
+ws["E3"].value = "Week of " # + current_week
+ws["F3"].value = "Growth from LW"
+
+ws["I2"].value = "Current"
+ws["H3"].value = "School ID"
+ws["I3"].value = "Week of " 
+ws["J3"].value = "Week of " 
+ws["K3"].value = "Week of " 
+ws["L3"].value = "Week of "
+ws["M3"].value = "Week of " 
+
+for i in range(1, 20):
+    col_letter = get_column_letter(i)
+    ws[col_letter + str(1)].font = Font(bold = True)
+    ws[col_letter + str(3)].font = Font(bold = True)
+    ws[col_letter + str(23)].font = Font(bold = True)
+
+for column in range(1, 25):
+    for row in range(1, 60):
+        char = get_column_letter(column)
+        if char not in "EFIJKLM" and str(row):
+            ws[char+str(row)].font = Font(name = "EmojiOne Color")
+
 
 wb.save("TEST1.xlsx")
-
