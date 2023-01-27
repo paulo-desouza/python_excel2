@@ -2,11 +2,19 @@
 
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
-from openpyxl.styles import Font, PatternFill, Border, Side
+from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
 from datetime import datetime, timedelta
 import pyexcel
 import os
 from time import sleep
+
+
+def set_border(ws, cell_range):
+    thin = Side(border_style="thin", color="000000")
+    for row in ws[cell_range]:
+        for cell in row:
+            cell.border = Border(top=thin, left=thin, right=thin, bottom=thin)
+
 
 
 def convert_xls(xls_file):
@@ -171,7 +179,6 @@ def get_file_names():
     file_list = os.listdir(current_dir)
 
     file_list.remove("growth_report.py")
-    file_list.remove("TEST1.xlsx")
 
     return file_list
 
@@ -236,7 +243,7 @@ def sort_by_date(file_list):
 
                 sorted_files.append(file)
         
-    return sorted_files
+    return sorted_files, sorted_dates
 
 
 def get_last_week(datetime):
@@ -251,6 +258,14 @@ def get_last_week(datetime):
     relation to the received datetime.
     """
     return (datetime - timedelta(days=7))
+
+
+
+def get_week_id(dt):
+    return dt.strftime("%V")
+
+def get_week_str(dt):
+    return dt.strftime("%m/%d/%y")
 
 
 
@@ -273,7 +288,10 @@ for file in file_list:
 file_list = get_file_names()
 
 
-sorted_datetimes = sort_by_date(file_list)
+sorted_datetimes = sort_by_date(file_list)[0]
+
+
+weeks_dt = sort_by_date(file_list)[1]
 
 
 # scrape all the tables onto this list:
@@ -329,14 +347,15 @@ FIXED_INFO = {'001-Celebree of Glen Burnie': [381, 150],          # gb
 # ^^^       missing BELLONA and COLUMBIA       ^^^
 
 #Change positions of the worksheets. Bring current one to top.
+current_week_id = str(int(get_week_id(weeks_dt[1]))+1)
 
-wb.create_sheet("Growth Report" + " - Week 2")
+new_week_sheet = "Growth Report - Week " + current_week_id
+
+wb.create_sheet(new_week_sheet)
 
 move_sheet(wb, len(wb.sheetnames)-1, 1)
 
-ws = wb["Growth Report - Week 2"]
-
-
+ws = wb[new_week_sheet]
 
 titles = []
 
@@ -433,22 +452,27 @@ for a, dic in enumerate(data):
             if char == "F" and a == 1:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
             
             if char == "G" and a == 2:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
                 
             if char == "H" and a == 3:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
                 
             if char == "I" and a == 4:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
                 
             if char == "J" and a == 5:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
         
         
         
@@ -464,17 +488,56 @@ for i in range(0, len(titles)):
 
                 ###STYLE###
 
+for column in range(1, 25):
+    for row in range(1, 60):
+        char = get_column_letter(column)
+        ws[char+str(row)].font = Font(name = "Calibri Light")
+        
+
+
 
 ws.move_range("A1:J36", rows=3, cols=3)
 
+ws.row_dimensions[1].height = 24
+ws.row_dimensions[23].height = 24
+
+ws["D1"].font = Font(size = 19)
+ws["D1"].alignment = Alignment(horizontal='center')
+
+ws["D1"].fill = PatternFill(fill_type='solid',
+                            start_color='99ffcc',
+                            end_color='99ffcc')
+
+ws["H1"].font = Font(size=19)
+ws["H1"].alignment = Alignment(horizontal='center')
+ws["H1"].fill = PatternFill(fill_type='solid',
+                            start_color='99ffcc',
+                            end_color='99ffcc')
+
+ws["D23"].font = Font(size = 19)
+ws["D23"].alignment = Alignment(horizontal='center')
+ws["d23"].fill = PatternFill(fill_type='solid',
+                            start_color='ccffcc',
+                            end_color='ccffcc')
+
+ws["H23"].font = Font(size = 19)
+ws["H23"].alignment = Alignment(horizontal='center')
+ws["H23"].fill = PatternFill(fill_type='solid',
+                            start_color='ccffcc',
+                            end_color='ccffcc')
+
+
 ws.column_dimensions["D"].width = 35
+ws.column_dimensions["F"].width = 15
 ws.column_dimensions["H"].width = 35
 
 ws.column_dimensions["A"].width = 3
-ws.column_dimensions["B"].width = 3
+ws.column_dimensions["B"].width = 27
 ws.column_dimensions["C"].width = 3
 
-ws.row_dimensions[2].height = 8.5
+ws.row_dimensions[2].height = 12.5
+ws["E2"].font = Font(size = 8)
+ws["I2"].font = Font(size = 8)
 
 ws.merge_cells("D1:F1")
 ws.merge_cells("H1:M1")
@@ -490,28 +553,36 @@ ws["H23"].value = "School Occupancy"
 
 ws["E2"].value = "Current"
 ws["D3"].value = "School ID"
-ws["E3"].value = "Week of " # + current_week
+ws["E3"].value = get_week_str(weeks_dt[1])
 ws["F3"].value = "Growth from LW"
 
 ws["I2"].value = "Current"
 ws["H3"].value = "School ID"
-ws["I3"].value = "Week of " 
-ws["J3"].value = "Week of " 
-ws["K3"].value = "Week of " 
-ws["L3"].value = "Week of "
-ws["M3"].value = "Week of " 
+ws["I3"].value = get_week_str(weeks_dt[1])
+ws["J3"].value = get_week_str(weeks_dt[2])
+ws["K3"].value = get_week_str(weeks_dt[3])
+ws["L3"].value = get_week_str(weeks_dt[4])
+ws["M3"].value = get_week_str(weeks_dt[5])
 
-for i in range(1, 20):
-    col_letter = get_column_letter(i)
-    ws[col_letter + str(1)].font = Font(bold = True)
-    ws[col_letter + str(3)].font = Font(bold = True)
-    ws[col_letter + str(23)].font = Font(bold = True)
-
-for column in range(1, 25):
-    for row in range(1, 60):
-        char = get_column_letter(column)
-        if char not in "EFIJKLM" and str(row):
-            ws[char+str(row)].font = Font(name = "EmojiOne Color")
+ws.merge_cells("B1:B2")
+ws["B1"].value = "Growth Report"
+ws["B1"].font = Font(size = 19)
+ws['B1'].alignment = Alignment(horizontal = "center", vertical = "center")
+ws["B1"].fill = PatternFill(fill_type='solid',
+                            start_color='ccffcc',
+                            end_color='ccffcc')
 
 
-wb.save("TEST1.xlsx")
+ws["B3"].value = "Week "+ current_week_id +" of 52"
+ws['B3'].alignment = Alignment(horizontal = "center", vertical = "center")
+
+
+####BORDERS####
+set_border(ws, "B1:B3")
+set_border(ws, 'D1:F19') 
+set_border(ws, 'D23:E39') 
+set_border(ws, 'H1:M19') 
+set_border(ws, 'H23:M39') 
+
+
+wb.save("result.xlsx")
