@@ -433,7 +433,7 @@ for i in range(0, len(titles)):
     else:
         ws["A" + str(i+1)].value = titles[i]
 
-
+table_len = len(titles)
 # DATA TABLE ITERATION
 for a, dic in enumerate(data):
 
@@ -453,7 +453,7 @@ for a, dic in enumerate(data):
                     pass
                 
             elif a == 5 and char == "B":
-                ws[char + str(b+21)].value = dic[key][4]
+                ws[char + str(b+table_len + 4)].value = dic[key][4]
         
         
         
@@ -471,39 +471,39 @@ for a, dic in enumerate(data):
             
             if char == "F" and a == 1:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+table_len + 4)].alignment = Alignment(horizontal = "right")
             
             if char == "G" and a == 2:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+table_len + 4)].alignment = Alignment(horizontal = "right")
                 
             if char == "H" and a == 3:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+table_len + 4)].alignment = Alignment(horizontal = "right")
                 
             if char == "I" and a == 4:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+table_len + 4)].alignment = Alignment(horizontal = "right")
                 
             if char == "J" and a == 5:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+table_len + 4)].alignment = Alignment(horizontal = "right")
         
         
         
 for i in range(0, len(titles)):
 
-    ws["A" + str(i+21)].value = titles[i]
+    ws["A" + str(i+table_len + 4)].value = titles[i]
 
         
 for i in range(0, len(titles)):
 
-    ws["E" + str(i+21)].value = titles[i]
+    ws["E" + str(i+table_len + 4)].value = titles[i]
 
 
                 ###STYLE###
@@ -514,15 +514,11 @@ for column in range(1, 25):
         ws[char+str(row)].font = Font(name = "Calibri Light")
         
 
-table_len = len(titles)
-
-
-
 
 ws.move_range("A1:J" + str((table_len*2)+3), rows=3, cols=3)         #36 needs to be a variable that accounts for the number of schools
 
 ws.row_dimensions[1].height = 24
-ws.row_dimensions[23].height = 24
+#ws.row_dimensions[table_len + 4].height = 24
 
 ws["D1"].font = Font(size = 19)
 ws["D1"].alignment = Alignment(horizontal='center')
@@ -537,15 +533,15 @@ ws["H1"].fill = PatternFill(fill_type='solid',
                             start_color='99ffcc',
                             end_color='99ffcc')
 
-ws["D23"].font = Font(size = 19)
-ws["D23"].alignment = Alignment(horizontal='center')
-ws["d23"].fill = PatternFill(fill_type='solid',
+ws["D"+str(table_len + 6)].font = Font(size = 19)
+ws["D"+str(table_len + 6)].alignment = Alignment(horizontal='center')
+ws["d"+str(table_len + 6)].fill = PatternFill(fill_type='solid',
                             start_color='ccffcc',
                             end_color='ccffcc')
 
-ws["H23"].font = Font(size = 19)
-ws["H23"].alignment = Alignment(horizontal='center')
-ws["H23"].fill = PatternFill(fill_type='solid',
+ws["H"+str(table_len + 6)].font = Font(size = 19)
+ws["H"+str(table_len + 6)].alignment = Alignment(horizontal='center')
+ws["H"+str(table_len + 6)].fill = PatternFill(fill_type='solid',
                             start_color='ccffcc',
                             end_color='ccffcc')
 
@@ -564,14 +560,14 @@ ws["I2"].font = Font(size = 8)
 
 ws.merge_cells("D1:F1")
 ws.merge_cells("H1:M1")
-ws.merge_cells("D23:E23")
-ws.merge_cells("H23:M23")
+ws.merge_cells("D"+str(table_len + 6)+":E"+str(table_len + 6))
+ws.merge_cells("H"+str(table_len + 6)+":M"+str(table_len + 6))
 
 ws["D1"].value = "FTE Children"
 
 ws["H1"].value = "FTE Children BD Projections"
-ws["D23"].value = "School Max Capacity"
-ws["H23"].value = "School Occupancy"
+ws["D"+str(table_len + 6)].value = "School Max Capacity"
+ws["H"+str(table_len + 6)].value = "School Occupancy"
 
 
 ws["E2"].value = "Current"
@@ -603,9 +599,9 @@ ws['B3'].alignment = Alignment(horizontal = "center", vertical = "center")
 ####BORDERS####
 set_border(ws, "B1:B3")
 set_border(ws, 'D1:F'+ str(table_len+3))        #ALL FOUR OF THESE ALSO NEED THE VARIABLES WITH THE AMOUNT OF SCHOOLS
-set_border(ws, 'D23:E'+ str((table_len+3)*2)) 
+set_border(ws, 'D'+str(table_len + 6)+':E'+ str((table_len+3)*2)) 
 set_border(ws, 'H1:M'+ str(table_len+3)) 
-set_border(ws, 'H23:M' + str((table_len+3)*2)) 
+set_border(ws, 'H'+str(table_len + 6)+':M' + str((table_len+3)*2)) 
 
 
 wb.save("result.xlsx")

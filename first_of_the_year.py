@@ -204,6 +204,7 @@ def get_week_str(dt):
 
 file_list = get_file_names()
 
+
 #get_last_weeks table
 last_week_table = get_last_week_data(file_list)
 
@@ -217,6 +218,7 @@ for file in file_list:
 # get list with converted files
 
 file_list = get_file_names()
+file_list.remove("rates-and-capacities.xlsx")
 
 
 sorted_datetimes = sort_by_date(file_list)[0]
@@ -232,6 +234,33 @@ for i, file in enumerate(sorted_datetimes):
     ws = wb.active
 
     tables.append(scrape_table(ws))
+    
+    
+# FIXED INFO GATHERING
+file_list = get_file_names()
+
+for file in file_list:
+    if file == "rates-and-capacities.xlsx":
+        rates_table = file
+        
+        
+wb = load_workbook(rates_table)
+ws = wb.active
+
+row_count = 0
+ 
+for row in ws:
+    if not all([cell.value is None for cell in row]):
+        row_count += 1
+
+FIXED_INFO = {}
+
+for row in range(3, row_count+1):
+    for column in range(1,4):
+        char = get_column_letter(column)
+        
+        if column == 1:
+            FIXED_INFO[(ws[char + str(row)].value)] = [ws[get_column_letter(column + 1) + str(row)].value, ws[get_column_letter(column + 2) + str(row)].value]
 
 
 wb = Workbook()
@@ -244,27 +273,8 @@ for list in tables:
     write_table(list, ws, col)
     col += 6
 
-    #[rate/kid, maxcap]
-FIXED_INFO = {'001-Celebree of Glen Burnie': [381, 150],          # gb
-              '002-Celebree of Owings Mills': [356, 135],         # om
-              '003-Celebree of Tysons-Jones Branch': [526, 152],  # tjb
-              '004-Celebree of Ashburn Farm': [394, 126],         # ash
-              '005-Celebree of Laurel': [370, 144],               # laurel
-              '006-Celebree of Rockville': [426, 190],            # rock
-              '007-Celebree of Montgomeryville': [328, 147],      # montg
-              '008-Celebree of Fort Mill-Patricia Lane': [314, 168],  # fm
-              '009-Celebree of Henrico': [306, 172],              # henri
-              '010-Celebree of Reston': [425, 172],               # reston
-              '011-Celebree of Elkridge': [424, 141],             # elk
-              '012-Celebree of Warrington ': [353, 161],           # warr
-              '013-Celebree of Nottingham ': [331, 141],           # nott
-              '014-Celebree of East Norriton': [339, 145],        # EN
-              '015-Celebree of Alexandria': [440, 190],           # ALX
-              #'016-Celebree of Canton': [436, 152],               # canton
-              '017-Celebree of Melford': [381, 150]               # melford
-              }
-# ^^^       missing BELLONA and COLUMBIA       ^^^
 
+            
 
 wb.create_sheet("Growth Report")
 ws = wb["Growth Report"]
@@ -363,6 +373,8 @@ for i in range(0, len(titles)):
 
     ws["E" + str(i+1)].value = titles[i]
 
+table_len = len(titles)
+
 for a, dic in enumerate(data):
 
     for b, key in enumerate(dic):
@@ -379,7 +391,7 @@ for a, dic in enumerate(data):
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3]) - int(last_week_table[key][0]/last_week_table[key][3])
                 
             elif a == 4 and char == "B":
-                ws[char + str(b+21)].value = dic[key][4]
+                ws[char + str(b + table_len + 4)].value = dic[key][4]
 
 for a, dic in enumerate(data):
 
@@ -390,39 +402,39 @@ for a, dic in enumerate(data):
             
             if char == "F" and a == 0:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+ table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+ table_len + 4)].alignment = Alignment(horizontal = "right")
             
             if char == "G" and a == 1:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+ table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+ table_len + 4)].alignment = Alignment(horizontal = "right")
                 
             if char == "H" and a == 2:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+ table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+ table_len + 4)].alignment = Alignment(horizontal = "right")
                 
             if char == "I" and a == 3:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+ table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+ table_len + 4)].alignment = Alignment(horizontal = "right")
                 
             if char == "J" and a == 4:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
-                ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
+                ws[char + str(b+ table_len + 4)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                ws[char + str(b+ table_len + 4)].alignment = Alignment(horizontal = "right")
         
         
         
 for i in range(0, len(titles)):
 
-    ws["A" + str(i+21)].value = titles[i]
+    ws["A" + str(i+ table_len + 4)].value = titles[i]
 
         
 for i in range(0, len(titles)):
 
-    ws["E" + str(i+21)].value = titles[i]
+    ws["E" + str(i+ table_len + 4)].value = titles[i]
 
 
                 ###STYLE###
@@ -439,7 +451,7 @@ table_len = len(titles)
 ws.move_range("A1:J" + str((table_len*2)+3), rows=3, cols=3)
 
 ws.row_dimensions[1].height = 24
-ws.row_dimensions[23].height = 24
+#ws.row_dimensions[table_len + 4].height = 24
 
 ws["D1"].font = Font(size = 19)
 ws["D1"].alignment = Alignment(horizontal='center')
@@ -454,15 +466,15 @@ ws["H1"].fill = PatternFill(fill_type='solid',
                             start_color='99ffcc',
                             end_color='99ffcc')
 
-ws["D23"].font = Font(size = 19)
-ws["D23"].alignment = Alignment(horizontal='center')
-ws["d23"].fill = PatternFill(fill_type='solid',
+ws["D"+ str(table_len + 6)].font = Font(size = 19)
+ws["D"+ str(table_len + 6)].alignment = Alignment(horizontal='center')
+ws["D"+ str(table_len + 6)].fill = PatternFill(fill_type='solid',
                             start_color='ccffcc',
                             end_color='ccffcc')
 
-ws["H23"].font = Font(size = 19)
-ws["H23"].alignment = Alignment(horizontal='center')
-ws["H23"].fill = PatternFill(fill_type='solid',
+ws["H"+ str(table_len + 6)].font = Font(size = 19)
+ws["H"+ str(table_len + 6)].alignment = Alignment(horizontal='center')
+ws["H"+ str(table_len + 6)].fill = PatternFill(fill_type='solid',
                             start_color='ccffcc',
                             end_color='ccffcc')
 
@@ -481,14 +493,14 @@ ws["I2"].font = Font(size = 8)
 
 ws.merge_cells("D1:F1")
 ws.merge_cells("H1:M1")
-ws.merge_cells("D23:E23")
-ws.merge_cells("H23:M23")
+ws.merge_cells("D"+ str(table_len + 6)+":E"+ str(table_len + 6))
+ws.merge_cells("H"+ str(table_len + 6)+":M"+ str(table_len + 6))
 
 ws["D1"].value = "FTE Children"
 
 ws["H1"].value = "FTE Children BD Projections"
-ws["D23"].value = "School Max Capacity"
-ws["H23"].value = "School Occupancy"
+ws["D"+ str(table_len + 6)].value = "School Max Capacity"
+ws["H"+ str(table_len + 6)].value = "School Occupancy"
 
 
 ws["E2"].value = "Current"
@@ -520,9 +532,9 @@ ws['B3'].alignment = Alignment(horizontal = "center", vertical = "center")
 ####BORDERS####
 set_border(ws, "B1:B3")
 set_border(ws, 'D1:F'+ str(table_len+3))        #ALL FOUR OF THESE ALSO NEED THE VARIABLES WITH THE AMOUNT OF SCHOOLS
-set_border(ws, 'D23:E'+ str((table_len+3)*2)) 
+set_border(ws, 'D'+ str(table_len + 6)+':E'+ str((table_len+3)*2)) 
 set_border(ws, 'H1:M'+ str(table_len+3)) 
-set_border(ws, 'H23:M' + str((table_len+3)*2)) 
+set_border(ws, 'H'+ str(table_len + 6)+':M' + str((table_len+3)*2)) 
 
 
 wb.save("result.xlsx")
