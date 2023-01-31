@@ -1,12 +1,10 @@
 # objective for this code: better use of functions.
-
-from openpyxl import load_workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
-from datetime import datetime, timedelta
+from datetime import datetime
 import pyexcel
 import os
-from time import sleep
 
 
 def set_border(ws, cell_range):
@@ -46,7 +44,7 @@ def delete_file(file):
     os.remove(file)
 
 
-def scrape_table(worksheet, flag = 0):
+def scrape_table(worksheet):
     """
     Parameters
     ----------
@@ -57,32 +55,27 @@ def scrape_table(worksheet, flag = 0):
     List with the table contents.
 
     """
-    # Row counter
+    # Row and column counter
     row_count = 0
-    
+
     for row in worksheet:
         if not all([cell.value is None for cell in row]):
             row_count += 1
 
-    # Loop through the rows and columns, appending the information to a dictionary.
+    # Loop through the rows and columns, appending the information to a list.
     scraped_info = {}
 
     for r in range(1, row_count+1):
 
         for col in range(1, 5):
+
             char = get_column_letter(col)
-            
-            
-            
-            if ws["A" + str(r)].value == None:
-                pass
-            
+
+            if char == "A":
+                scraped_info[worksheet[char + str(r)].value] = []
             else:
-                if char == "A":
-                    scraped_info[ws[char + str(r)].value] = []
-                else:
-                    scraped_info[ws["A" +
-                                    str(r)].value] += [ws[char + str(r)].value]
+                scraped_info[worksheet["A" +
+                                str(r)].value] += [worksheet[char + str(r)].value]
 
     return scraped_info
 
@@ -135,37 +128,6 @@ def date_conversion(date_string):
     return datetime(y, m, d)
 
 
-
-def date_conversion_rev(dt):
-    """
-    Parameters
-    -------
-    datetime: datetime object.
-
-    Returns
-    -------
-    String containing a datestring in the following format: "YYMMDD"
-    """
-    
-    return dt.strftime("%m%d%y")
-    
-    
-def move_sheet(wb, from_loc=None, to_loc=None):
-    sheets=wb._sheets
-
-    # if no from_loc given, assume last sheet
-    if from_loc is None:
-        from_loc = len(sheets) - 1
-
-    #if no to_loc given, assume first
-    if to_loc is None:
-        to_loc = 0
-
-    sheet = sheets.pop(from_loc)
-    sheets.insert(to_loc, sheet)
-    sleep(0.5)
-    
-    
 def get_file_names():
     """
     Returns
@@ -178,11 +140,23 @@ def get_file_names():
 
     file_list = os.listdir(current_dir)
 
-    file_list.remove("growth_report.py")
-   
+    file_list.remove("first_of_the_year.py")
 
     return file_list
 
+
+def get_last_week_data(file_list):
+    
+    for file in file_list:
+        
+        if file == "last_yearly_report.xlsx":
+            
+            wb = load_workbook(file)
+            ws = wb["Timeline"]
+            
+            table_info = scrape_table(ws)
+            
+            return table_info
 
 def sort_by_date(file_list):
     """
@@ -197,71 +171,23 @@ def sort_by_date(file_list):
 
     sorted_files = []
     sorted_dates = []
-    
-    
-    
+
     for file in file_list:
-        if file == "LAST_GROWTH_REPORT.xlsx":
-            pass
-        else:
+        if file == "last_yearly_report.xlsx":
+            file_list.remove(file)
+        else:    
             sorted_dates.append(date_conversion(file))
 
     sorted_dates.sort()
-    
-    
-    # FROM THE CURRENT DATETIME, GET LAST WEEK'S DATETIME
-    for file in file_list:
-        if file == "LAST_GROWTH_REPORT.xlsx":
-            
-            #needs present
-            last_week = get_last_week(sorted_dates[0])
-            
-            #LAST WEEK STRING SHOULD REFLECT THE OTHER FILES' FORMATS : Y M D
-            last_week_string = date_conversion_rev(last_week)
-            
-            newfilename = "report "+last_week_string+" lastweek.xlsx"
-            os.rename("LAST_GROWTH_REPORT.xlsx", newfilename )
-            
-            #remove old filename and add new filename
-            file_list.remove("LAST_GROWTH_REPORT.xlsx")
-            
-            current_dir = os.getcwd()
-            file_list2 = os.listdir(current_dir)
-            
-            for file in file_list2:
-                if file == newfilename:
-                    file_list.append(newfilename)
-                    
-                else:
-                    pass            
-            
-            #add the datetime to sorted_dates
-            sorted_dates.insert(0, last_week)
-            
-    
-    
+
     for dt in sorted_dates:
         for file in file_list:
+
             if date_conversion(file) == dt:
 
                 sorted_files.append(file)
-        
+
     return sorted_files, sorted_dates
-
-
-def get_last_week(datetime):
-    """
-    Parameters
-    ----------
-    datetime : datetime object. 
-
-    Returns
-    -------
-    datetime_lastweek : datetime object containing last week's date in
-    relation to the received datetime.
-    """
-    return (datetime - timedelta(days=7))
-
 
 
 def get_week_id(dt):
@@ -278,6 +204,9 @@ def get_week_str(dt):
 
 file_list = get_file_names()
 
+#get_last_weeks table
+last_week_table = get_last_week_data(file_list)
+
 for file in file_list:
     if "xlsx" in file:
         pass
@@ -285,98 +214,65 @@ for file in file_list:
         convert_xls(file)
         delete_file(file)
 
-
 # get list with converted files
 
 file_list = get_file_names()
-file_list.remove("rates-and-capacities.xlsx")
 
 
 sorted_datetimes = sort_by_date(file_list)[0]
-
 
 weeks_dt = sort_by_date(file_list)[1]
 
 
 # scrape all the tables onto this list:
-
 tables = []
 
 for i, file in enumerate(sorted_datetimes):
-    
-    if i == 0:
-        wb = load_workbook(file)
-        ws = wb["Timeline"]
-        
-        tables.append(scrape_table(ws))
-    else:
-        wb = load_workbook(file)
-        ws = wb.active
-        
-        tables.append(scrape_table(ws))
+    wb = load_workbook(file)
+    ws = wb.active
+
+    tables.append(scrape_table(ws))
 
 
-wb = load_workbook(sorted_datetimes[0])
-ws = wb["Timeline"]
-
-# OVERWRITE PAST REPORT'S TIMELINE
-col = 1
-for i, lst in enumerate(tables):
-    if i == 0:
-        pass 
-    else:
-        write_table(lst, ws, col)
-        col += 6
-
-
-# get the filename, open the worksheet, loop for the data. 
-
-
-
-file_list = get_file_names()
-
-for file in file_list:
-    if file == "rates-and-capacities.xlsx":
-        rates_table = file
-
-wb = load_workbook(rates_table)
+wb = Workbook()
 ws = wb.active
-
-row_count = 0
- 
-for row in ws:
-    if not all([cell.value is None for cell in row]):
-        row_count += 1
-
-FIXED_INFO = {}
-
-for row in range(3, row_count+1):
-    for column in range(1,4):
-        char = get_column_letter(column)
-        
-        if column == 1:
-            FIXED_INFO[(ws[char + str(row)].value)] = [ws[get_column_letter(column + 1) + str(row)].value, ws[get_column_letter(column + 2) + str(row)].value]
-            
-
-wb = load_workbook(sorted_datetimes[0])
-ws = wb["Timeline"]
-            
+ws.title = "Timeline"
 
 
-#Change positions of the worksheets. Bring current one to top.
-current_week_id = str(int(get_week_id(weeks_dt[1]))+1)
+col = 1
+for list in tables:
+    write_table(list, ws, col)
+    col += 6
 
-new_week_sheet = "Growth Report - Week " + current_week_id
+    #[rate/kid, maxcap]
+FIXED_INFO = {'001-Celebree of Glen Burnie': [381, 150],          # gb
+              '002-Celebree of Owings Mills': [356, 135],         # om
+              '003-Celebree of Tysons-Jones Branch': [526, 152],  # tjb
+              '004-Celebree of Ashburn Farm': [394, 126],         # ash
+              '005-Celebree of Laurel': [370, 144],               # laurel
+              '006-Celebree of Rockville': [426, 190],            # rock
+              '007-Celebree of Montgomeryville': [328, 147],      # montg
+              '008-Celebree of Fort Mill-Patricia Lane': [314, 168],  # fm
+              '009-Celebree of Henrico': [306, 172],              # henri
+              '010-Celebree of Reston': [425, 172],               # reston
+              '011-Celebree of Elkridge': [424, 141],             # elk
+              '012-Celebree of Warrington ': [353, 161],           # warr
+              '013-Celebree of Nottingham ': [331, 141],           # nott
+              '014-Celebree of East Norriton': [339, 145],        # EN
+              '015-Celebree of Alexandria': [440, 190],           # ALX
+              #'016-Celebree of Canton': [436, 152],               # canton
+              '017-Celebree of Melford': [381, 150]               # melford
+              }
+# ^^^       missing BELLONA and COLUMBIA       ^^^
 
-wb.create_sheet(new_week_sheet)
 
-move_sheet(wb, len(wb.sheetnames)-1, 1)
+wb.create_sheet("Growth Report")
+ws = wb["Growth Report"]
 
-ws = wb[new_week_sheet]
 
 titles = []
 
-for i, key in enumerate(tables[5]):
+for i, key in enumerate(tables[4]):
     if i < 3:
         pass
 
@@ -391,10 +287,13 @@ for i, key in enumerate(tables[5]):
 
 # CREATING BLOAT FREE TABLES LIST
 org_tables = []
+org_LW = []
 
 for dic in tables:
 
     org_tables.append(dic.copy())
+    
+org_LW.append(last_week_table.copy())
 
 
 for i, dic in enumerate(tables):
@@ -408,9 +307,24 @@ for i, dic in enumerate(tables):
         elif "999" in row:
             del org_tables[i][row]
             
+
+
+for counter, row in enumerate(last_week_table):
+    if row == None:
+        del org_LW[0][row]
+    else:
+        if counter < 3:
+            #remove item
+            del org_LW[0][row]
+    
+        elif "999" in row:
+            del org_LW[0][row]            
+    
         
 data = []
-            
+LW_data = []
+
+
 for dic in org_tables:
 
     data.append(dic.copy())
@@ -423,8 +337,20 @@ for i, dic in enumerate(org_tables):
         #append values to the list 
         data[i][row] += FIXED_INFO[row]
         
+        
+for dic in org_LW:
 
-# SCHOOL ID COLUMN ITERATION
+    LW_data.append(dic.copy())
+    
+
+for i, dic in enumerate(org_LW):
+    
+    for row in dic:
+        
+        #append values to the list 
+        LW_data[i][row] += FIXED_INFO[row]
+
+#TITLES
 
 for i in range(0, len(titles)):
     
@@ -433,8 +359,10 @@ for i in range(0, len(titles)):
     else:
         ws["A" + str(i+1)].value = titles[i]
 
+for i in range(0, len(titles)):
 
-# DATA TABLE ITERATION
+    ws["E" + str(i+1)].value = titles[i]
+
 for a, dic in enumerate(data):
 
     for b, key in enumerate(dic):
@@ -442,26 +370,17 @@ for a, dic in enumerate(data):
         for col in range(2, 4):
             char = get_column_letter(col)
             
-            if a == 1 and col == 2:
+            if a == 0 and col == 2:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 
                 
-            elif a == 1 and col == 3:
-                try:
-                    ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3]) - int(data[a-1][key][0]/dic[key][3])
-                except:
-                    pass
+            elif a == 0 and col == 3:
                 
-            elif a == 5 and char == "B":
+                ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3]) - int(last_week_table[key][0]/last_week_table[key][3])
+                
+            elif a == 4 and char == "B":
                 ws[char + str(b+21)].value = dic[key][4]
-        
-        
-        
-for i in range(0, len(titles)):
 
-    ws["E" + str(i+1)].value = titles[i]
-
-# DATA TABLE ITERATION
 for a, dic in enumerate(data):
 
     for b, key in enumerate(dic):
@@ -469,27 +388,27 @@ for a, dic in enumerate(data):
         for col in range(6, 11):
             char = get_column_letter(col)
             
-            if char == "F" and a == 1:
+            if char == "F" and a == 0:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
                 ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
             
-            if char == "G" and a == 2:
+            if char == "G" and a == 1:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
                 ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
                 
-            if char == "H" and a == 3:
+            if char == "H" and a == 2:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
                 ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
                 
-            if char == "I" and a == 4:
+            if char == "I" and a == 3:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
                 ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
                 
-            if char == "J" and a == 5:
+            if char == "J" and a == 4:
                 ws[char + str(b+1)].value = int(dic[key][0]/dic[key][3])
                 ws[char + str(b+21)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
                 ws[char + str(b+21)].alignment = Alignment(horizontal = "right")
@@ -517,9 +436,7 @@ for column in range(1, 25):
 table_len = len(titles)
 
 
-
-
-ws.move_range("A1:J" + str((table_len*2)+3), rows=3, cols=3)         #36 needs to be a variable that accounts for the number of schools
+ws.move_range("A1:J" + str((table_len*2)+3), rows=3, cols=3)
 
 ws.row_dimensions[1].height = 24
 ws.row_dimensions[23].height = 24
@@ -576,16 +493,16 @@ ws["H23"].value = "School Occupancy"
 
 ws["E2"].value = "Current"
 ws["D3"].value = "School ID"
-ws["E3"].value = get_week_str(weeks_dt[1])
+ws["E3"].value = get_week_str(weeks_dt[0])
 ws["F3"].value = "Growth from LW"
 
 ws["I2"].value = "Current"
 ws["H3"].value = "School ID"
-ws["I3"].value = get_week_str(weeks_dt[1])
-ws["J3"].value = get_week_str(weeks_dt[2])
-ws["K3"].value = get_week_str(weeks_dt[3])
-ws["L3"].value = get_week_str(weeks_dt[4])
-ws["M3"].value = get_week_str(weeks_dt[5])
+ws["I3"].value = get_week_str(weeks_dt[0])
+ws["J3"].value = get_week_str(weeks_dt[1])
+ws["K3"].value = get_week_str(weeks_dt[2])
+ws["L3"].value = get_week_str(weeks_dt[3])
+ws["M3"].value = get_week_str(weeks_dt[4])
 
 ws.merge_cells("B1:B2")
 ws["B1"].value = "Growth Report"
@@ -596,7 +513,7 @@ ws["B1"].fill = PatternFill(fill_type='solid',
                             end_color='ccffcc')
 
 
-ws["B3"].value = "Week "+ current_week_id +" of 52"
+ws["B3"].value = "Week 1 of 52"
 ws['B3'].alignment = Alignment(horizontal = "center", vertical = "center")
 
 
@@ -609,3 +526,31 @@ set_border(ws, 'H23:M' + str((table_len+3)*2))
 
 
 wb.save("result.xlsx")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
