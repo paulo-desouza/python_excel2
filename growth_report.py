@@ -351,11 +351,11 @@ for row in ws:
 FIXED_INFO = {}
 
 for row in range(3, row_count+1):
-    for column in range(1,4):
+    for column in range(1,5):
         char = get_column_letter(column)
         
         if column == 1:
-            FIXED_INFO[(ws[char + str(row)].value)] = [ws[get_column_letter(column + 1) + str(row)].value, ws[get_column_letter(column + 2) + str(row)].value]
+            FIXED_INFO[(ws[char + str(row)].value)] = [ws[get_column_letter(column + 1) + str(row)].value, ws[get_column_letter(column + 2) + str(row)].value, ws[get_column_letter(column + 3) + str(row)].value]
             
 
 wb = load_workbook(sorted_datetimes[0])
@@ -424,6 +424,95 @@ for i, dic in enumerate(org_tables):
         data[i][row] += FIXED_INFO[row]
         
 
+# SEPARATE DATA IN "data" VARIABLE BY STATE
+
+# FIRST CHALLENGE: HAVE CODE IDENTIFY AUTOMATICALLY HOW MANY DIFFERENT STATES ARE IN THE "data" variable:
+    
+data_states = []
+
+
+for value in data[5].values():
+    if value[5] not in data_states:
+        data_states.append(value[5])
+
+
+n_states = len(data_states)
+
+
+
+# SECOND CHALLENGE: SEPARATE THE ACTUAL DATA
+the_data = []
+for l in range(0, n_states):
+    the_data.append([])
+    
+    
+
+
+
+for k, state in enumerate(data_states):
+    # create variables using the state strings
+    locals()[state] = []
+    
+    for i, dic in enumerate(data):
+        check = 0
+        
+        for j, item in enumerate(dic.items()):
+            
+            # the filtering needs to happen HERE somehow. 
+            # Only the schools matching the "state" variable 
+            # should get through.
+            
+            if item[1][5] == state:
+            
+                if i == 0:
+                    if check == 0:
+                        the_data[k].append({item[0]:item[1]})
+                        check = 1
+                    else:
+                        the_data[k][0][item[0]] = item[1]
+                    
+                    
+                if i == 1:
+                    if check == 0:
+                        the_data[k].append({item[0]:item[1]})
+                        check = 1
+                    else:
+                        the_data[k][1][item[0]] = item[1]
+                    
+                    
+                if i == 2:
+                    if check == 0:
+                        the_data[k].append({item[0]:item[1]})
+                        check = 1
+                    else:
+                        the_data[k][2][item[0]] = item[1]
+                    
+                    
+                if i == 3:
+                    if check == 0:
+                        the_data[k].append({item[0]:item[1]})
+                        check = 1
+                    else:
+                        the_data[k][3][item[0]] = item[1]
+                    
+                    
+                if i == 4:
+                    if check == 0:
+                        the_data[k].append({item[0]:item[1]})
+                        check = 1
+                    else:
+                        the_data[k][4][item[0]] = item[1]
+                    
+                    
+                if i == 5:
+                    if check == 0:
+                        the_data[k].append({item[0]:item[1]})
+                        check = 1
+                    else:
+                        the_data[k][5][item[0]] = item[1]
+                    
+
+
 # SCHOOL ID COLUMN ITERATION
 
 for i in range(0, len(titles)):
@@ -434,6 +523,8 @@ for i in range(0, len(titles)):
         ws["A" + str(i+1)].value = titles[i]
 
 table_len = len(titles)
+
+
 # DATA TABLE ITERATION
 for a, dic in enumerate(data):
 
