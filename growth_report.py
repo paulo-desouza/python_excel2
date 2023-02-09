@@ -1,6 +1,6 @@
 # objective for this code: better use of functions.
 
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
 from datetime import datetime, timedelta
@@ -764,3 +764,139 @@ set_border(ws, 'H'+str(table_len +n_states+ 7)+':M' + str((table_len+n_states+3)
 
 wb.save("result.xlsx")
 
+
+# Now, Generate all the other files for each individual school. 
+
+# Game plan:
+
+# draw the boards
+# pull the info 
+# make a loop saving the files onto a folder called "Individual School Reports"
+
+
+
+
+wb = Workbook()
+
+ws = wb.active
+
+#sheet header
+ws['f1'].value = "Growth Report"
+ws["f1"].fill = PatternFill(fill_type='solid',
+                            start_color='D8E4BC',
+                            end_color='D8E4BC')
+ws["f1"].font = Font(size = 20)
+
+ws['f2'].value = get_week_str(weeks_dt[1])
+ws["f2"].font = Font(size = 13)
+
+ws['f3'].value = "Week "+current_week_id+" Out of 52 ("+ str(52 - int(current_week_id)) +" Remaining)"
+
+ws.merge_cells('f1:h1')
+ws.merge_cells('f2:h2')
+ws.merge_cells('f3:h3')
+
+#table header 1
+ws["D5"].value = ""
+ws["d5"].font = Font(size = 18)
+
+ws.merge_cells('D5:J5')
+ws["D5"].fill = PatternFill(fill_type='solid',
+                            start_color='C5D9F1',
+                            end_color='C5D9F1')
+
+#column headers
+ws["E6"].value = "Last Week"
+ws["F6"].value = "Current"
+ws["G6"].value = get_week_str(weeks_dt[2])
+ws["H6"].value = get_week_str(weeks_dt[3])
+ws["I6"].value = get_week_str(weeks_dt[4])
+ws["J6"].value = get_week_str(weeks_dt[5])
+
+
+#row headers
+ws['D7'].value = "FTE Children"
+ws['D8'].value = "Occupancy (%)"
+ws['D9'].value = "Max Capacity"
+
+#growth box
+ws['L6'].value = "Growth from Last Week"
+ws["L6"].fill = PatternFill(fill_type='solid',
+                            start_color='C5D9F1',
+                            end_color='C5D9F1')
+ws["L6"].font = Font(size = 14)
+ws['L7'].value = ""
+ws["L7"].font = Font(size = 22)
+
+ws.merge_cells('L6:N6')
+ws.merge_cells('L7:N8')
+ws.merge_cells('E9:J9')
+
+        
+for row in range(1, 30):
+    for col in range(1, 30):
+        
+        col_letter = get_column_letter(col)
+        ws.column_dimensions[col_letter].width = 17
+        ws.row_dimensions[row].height = 30
+        ws[col_letter + str(row)].alignment = Alignment(horizontal = "center", vertical = "center")
+
+
+ws.column_dimensions["K"].width = 5.7
+ws.column_dimensions["A"].width = 5.7
+ws.column_dimensions["B"].width = 5.7
+ws.column_dimensions["C"].width = 5.7
+ws.row_dimensions[4].height = 10
+
+
+set_border(ws, "f1:h3")
+set_border(ws, "d5:j9")
+set_border(ws, "l6:n8")
+
+#create folder
+os.makedirs("Individual_Schools")
+
+for i in range(0, len(data[5])):
+    
+    for a, dic in enumerate(data):
+        for school in dic:
+            if titles[i] == school and school in data[1]:
+            
+                ws['d5'].value = titles[i][4:]
+                ws['e9'].value = dic[school][4]
+                
+                if a == 0:
+                    #last week's values
+                    ws['E7'].value = int(dic[school][0]/dic[school][3])
+                    ws['E8'].value = str(int((dic[school][0]/dic[school][3]) * 100 /dic[school][4]))+"%"
+                    
+                
+                
+                elif a == 1:
+                    try:
+                        ws['L7'].value = int(dic[school][0]/dic[school][3]) - int(data[a-1][school][0]/dic[school][3])
+                    except:
+                        print("not enough data")
+                
+                    #current values
+                    ws['f7'].value = int(dic[school][0]/dic[school][3])
+                    ws['f8'].value = str(int((dic[school][0]/dic[school][3]) * 100 /dic[school][4]))+"%"
+                    
+                elif a == 2: #projected values
+                    ws['g7'].value = int(dic[school][0]/dic[school][3])
+                    ws['g8'].value = str(int((dic[school][0]/dic[school][3]) * 100 /dic[school][4]))+"%"
+                    
+                elif a == 3:
+                    ws['h7'].value = int(dic[school][0]/dic[school][3])
+                    ws['h8'].value = str(int((dic[school][0]/dic[school][3]) * 100 /dic[school][4]))+"%"
+                    
+                elif a == 4:
+                    ws['i7'].value = int(dic[school][0]/dic[school][3])
+                    ws['i8'].value = str(int((dic[school][0]/dic[school][3]) * 100 /dic[school][4]))+"%"
+                    
+                elif a == 5:
+                    ws['j7'].value = int(dic[school][0]/dic[school][3])
+                    ws['j8'].value = str(int((dic[school][0]/dic[school][3]) * 100 /dic[school][4]))+"%"
+                
+
+                wb.save("Individual_Schools\\"+ titles[i][4:]  +".xlsx")
