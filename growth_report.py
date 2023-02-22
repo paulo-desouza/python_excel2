@@ -860,7 +860,7 @@ for i in range(0, len(data[5])):
     
     for a, dic in enumerate(data):
         for school in dic:
-            if titles[i] == school and school in data[1]:
+            if titles[i] == school and school in data[0]:
             
                 ws['d5'].value = titles[i][4:]
                 ws['e9'].value = dic[school][4]
