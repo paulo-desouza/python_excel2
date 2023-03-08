@@ -383,11 +383,7 @@ for i, key in enumerate(tables[5]):
     if i < 3:
         pass
 
-    # take bellona out
-    # canton and columbia dont exist in the originals?
-
-    elif "999" in key:
-        pass
+    
     else:
         titles.append(key)
 
@@ -408,8 +404,6 @@ for i, dic in enumerate(tables):
             #remove item
             del org_tables[i][row]
 
-        elif "999" in row:
-            del org_tables[i][row]
             
         
 data = []
@@ -421,7 +415,7 @@ for dic in org_tables:
 
 for i, dic in enumerate(org_tables):
     
-    for row in dic:
+    for row in dic: 
         
         #append values to the list 
         data[i][row] += FIXED_INFO[row]
@@ -528,6 +522,7 @@ for j, state in enumerate(the_data):
 
 
 # DRAW THE TITLES ON THE TABLES
+######################################################
 
 counter = 1
 for j, state in enumerate(state_keys):
@@ -539,6 +534,9 @@ for j, state in enumerate(state_keys):
     
         ws["A" + str(counter)].value = state[i]
         counter += 1
+    
+    counter += 1
+    ws["A" + str(counter)].value = data_states[j] + " subtotal:"
 
 
 
@@ -552,8 +550,8 @@ for j, state in enumerate(state_keys):
     
         ws["E" + str(counter)].value = state[i]
         counter += 1
-    
-
+    counter += 1
+    ws["E" + str(counter)].value = data_states[j] + " subtotal:"
 
 
 table_len = len(titles)      
@@ -579,7 +577,7 @@ for j, state in enumerate(state_keys):
     
         ws["A" + str(counter + table_len + n_states + 4)].value = state[i]
         counter += 1
-
+    
 
 # DATA TABLE    
 
@@ -589,7 +587,7 @@ for j, data_ in enumerate(the_data):
     if j == 0:
         id_a = 0
     else:
-        id_a += len(the_data[j-1][5])+1
+        id_a += len(the_data[j-1][5])+2
    
     
     for a, dic in enumerate(data_):
@@ -633,7 +631,7 @@ for j, data_ in enumerate(the_data):
     if j == 0:
         id_a = 0
     else:
-        id_a += len(the_data[j-1][5])+1
+        id_a += len(the_data[j-1][5])+2
         
     for a, dic in enumerate(data_):
         
@@ -753,9 +751,12 @@ ws["B1"].fill = PatternFill(fill_type='solid',
 ws["B3"].value = "Week "+ current_week_id +" of 52"
 ws['B3'].alignment = Alignment(horizontal = "center", vertical = "center")
 
+ws["B4"].value = str(52 - int(current_week_id)) + " weeks remaining"
+ws['B4'].alignment = Alignment(horizontal = "center", vertical = "center")
+
 
 ####BORDERS####
-set_border(ws, "B1:B3")
+set_border(ws, "B1:B4")
 set_border(ws, 'D1:F'+ str(table_len+n_states+3))        #ALL FOUR OF THESE ALSO NEED THE VARIABLES WITH THE AMOUNT OF SCHOOLS
 set_border(ws, 'D'+str(table_len +n_states+ 7)+':E'+ str((table_len+n_states+3)*2+1)) 
 set_border(ws, 'H1:M'+ str(table_len+n_states+3)) 
