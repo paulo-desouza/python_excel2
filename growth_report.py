@@ -524,6 +524,9 @@ for j, state in enumerate(the_data):
 # DRAW THE TITLES ON THE TABLES
 ######################################################
 
+sub_total_rows = []
+sub_total_styles = []
+
 counter = 1
 for j, state in enumerate(state_keys):
     
@@ -534,9 +537,11 @@ for j, state in enumerate(state_keys):
     
         ws["A" + str(counter)].value = state[i]
         counter += 1
-    
+    ws["A" + str(counter)].value = data_states[j] + "  subtotal:"
+    sub_total_rows.append(str(counter))
+    sub_total_styles.append(counter+3)
     counter += 1
-    ws["A" + str(counter)].value = data_states[j] + " subtotal:"
+    
 
 
 
@@ -550,8 +555,10 @@ for j, state in enumerate(state_keys):
     
         ws["E" + str(counter)].value = state[i]
         counter += 1
+    ws["E" + str(counter)].value = data_states[j] + "  subtotal:"
+    
     counter += 1
-    ws["E" + str(counter)].value = data_states[j] + " subtotal:"
+    
 
 
 table_len = len(titles)      
@@ -559,29 +566,38 @@ table_len = len(titles)
 counter = 1
 for j, state in enumerate(state_keys):
     
-    ws["E" + str(counter + table_len + n_states + 4)].value = data_states[j]
+    ws["E" + str(counter + table_len + (n_states*2) + 4)].value = data_states[j]
     counter += 1
     
     for i in range(0, len(state)):
     
-        ws["E" + str(counter + table_len + n_states + 4)].value = state[i]
+        ws["E" + str(counter + table_len + (n_states*2) + 4)].value = state[i]
         counter += 1
+        
+    counter += 1
+    
     
 counter = 1
 for j, state in enumerate(state_keys):
     
-    ws["A" + str(counter + table_len + n_states + 4)].value = data_states[j]
+    ws["A" + str(counter + table_len + (n_states*2) + 4)].value = data_states[j]
     counter += 1
     
     for i in range(0, len(state)):
     
-        ws["A" + str(counter + table_len + n_states + 4)].value = state[i]
+        ws["A" + str(counter + table_len + (n_states*2) + 4)].value = state[i]
         counter += 1
+    
+    counter += 1
+    
+    
     
 
 # DATA TABLE    
 
 counter = 1
+
+row_counter = 0
 
 for j, data_ in enumerate(the_data):
     if j == 0:
@@ -589,6 +605,7 @@ for j, data_ in enumerate(the_data):
     else:
         id_a += len(the_data[j-1][5])+2
    
+    subtotal1 = subtotal2 = subtotal3 = subtotal4 = subtotal5 = 0
     
     for a, dic in enumerate(data_):
         b = 0  
@@ -600,29 +617,42 @@ for j, data_ in enumerate(the_data):
                 
                 if char == "F" and a == 1:
                     ws[char + str(b+2+ id_a)].value = int(dic[key][0]/dic[key][3])
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].alignment = Alignment(horizontal = "right")
+                    subtotal1 += int(dic[key][0]/dic[key][3])
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].alignment = Alignment(horizontal = "right")
                 
                 if char == "G" and a == 2:
                     ws[char + str(b+2+ id_a)].value = int(dic[key][0]/dic[key][3])
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].alignment = Alignment(horizontal = "right")
+                    subtotal2 += int(dic[key][0]/dic[key][3])
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].alignment = Alignment(horizontal = "right")
                     
                 if char == "H" and a == 3:
                     ws[char + str(b+2+ id_a)].value = int(dic[key][0]/dic[key][3])
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].alignment = Alignment(horizontal = "right")
+                    subtotal3 += int(dic[key][0]/dic[key][3])
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].alignment = Alignment(horizontal = "right")
                     
                 if char == "I" and a == 4:
                     ws[char + str(b+2+ id_a)].value = int(dic[key][0]/dic[key][3])
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].alignment = Alignment(horizontal = "right")
+                    subtotal4 += int(dic[key][0]/dic[key][3])
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].alignment = Alignment(horizontal = "right")
                     
                 if char == "J" and a == 5:
                     ws[char + str(b+2+ id_a)].value = int(dic[key][0]/dic[key][3])
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
-                    ws[char + str(b+ id_a+table_len+ n_states + 6)].alignment = Alignment(horizontal = "right")
+                    subtotal5 += int(dic[key][0]/dic[key][3])
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].value = str(int((dic[key][0]/dic[key][3]) * 100 /dic[key][4]))+"%"
+                    ws[char + str(b+ id_a+table_len+ (n_states*2) + 6)].alignment = Alignment(horizontal = "right")
             b += 1
+    ws["F"+sub_total_rows[row_counter]].value = subtotal1
+    ws["G"+sub_total_rows[row_counter]].value = subtotal2
+    ws["H"+sub_total_rows[row_counter]].value = subtotal3
+    ws["I"+sub_total_rows[row_counter]].value = subtotal4
+    ws["J"+sub_total_rows[row_counter]].value = subtotal5
+    
+    row_counter += 1
+            
     #??? += len(data_[5])+1    
 
 
@@ -653,13 +683,15 @@ for j, data_ in enumerate(the_data):
                         pass
                     
                 elif a == 5 and char == "B":
-                    ws[char + str(b+table_len+ id_a + n_states + 6)].value = dic[key][4]
+                    ws[char + str(b+table_len+ id_a + (n_states*2) + 6)].value = dic[key][4]
             b += 1
     #??? += len(data_[5])+1      
         
 
 
 
+
+n_states *= 2
 
 
  ###STYLE###
